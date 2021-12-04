@@ -2,35 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>firebase.js - Documentation</title>
+    <title>JSDoc: Source: firebase.js</title>
 
-    <script src="scripts/prettify/prettify.js"></script>
-    <script src="scripts/prettify/lang-css.js"></script>
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
     <!--[if lt IE 9]>
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-    <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
     <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
     <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
 </head>
+
 <body>
 
-<input type="checkbox" id="nav-trigger" class="nav-trigger" />
-<label for="nav-trigger" class="navicon-button x">
-  <div class="navicon"></div>
-</label>
-
-<label for="nav-trigger" class="overlay"></label>
-
-<nav>
-    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading"><a href="global.html">Globals</a></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#addUser">addUser</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#convertTime">convertTime</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#createIngredientList">createIngredientList</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#getOrganization">getOrganization</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#getUrl">getUrl</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#getUser">getUser</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#searchForKey">searchForKey</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#signIn">signIn</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="global.html#signUp">signUp</a></span></li>
-</nav>
-
 <div id="main">
-    
-    <h1 class="page-title">firebase.js</h1>
-    
+
+    <h1 class="page-title">Source: firebase.js</h1>
 
     
 
@@ -41,90 +28,93 @@
         <article>
             <pre class="prettyprint source linenums"><code>import { initializeApp } from "https://www.gstatic.com/firebasejs/9.3.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.3.0/firebase-analytics.js";
-import { getAuth, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.3.0/firebase-auth.js'
-import { getFirestore, collection, addDoc, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/9.3.0/firebase-firestore.js'
-
-
-const firebaseConfig = {
-  apiKey: "AIzaSyCwaLuRVV073aNbTB5EaLoZDIFXGzvqr3A",
-  authDomain: "easy-chef-3eb03.firebaseapp.com",
-  projectId: "easy-chef-3eb03",
-  storageBucket: "easy-chef-3eb03.appspot.com",
-  messagingSenderId: "744097831580",
-  appId: "1:744097831580:web:ef9a05d277c2b1785b2b59",
-  measurementId: "G-JKV8H3SLTR"
-};
+import { getAuth, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.3.0/firebase-auth.js';
+import { getFirestore, collection, addDoc, query, where, getDocs, getDoc, updateDoc, arrayUnion, doc, arrayRemove, setDoc } from 'https://www.gstatic.com/firebasejs/9.3.0/firebase-firestore.js';
+import { firebaseConfig } from './api.js'
 const app = initializeApp(firebaseConfig);
 const auth = getAuth();
 const db = getFirestore();
 
-if (window.location.href == window.location.origin + '/source/signUp.html') {
+if (document.querySelector('#sbutton')) {
   document.querySelector('#sbutton').addEventListener('click', signUp);
 }
 
-if (window.location.href == window.location.origin + '/source/signIn.html') {
+if (document.querySelector('#lbutton')) {
   document.querySelector('#lbutton').addEventListener('click', signIn);
 }
 
 /**
  * Signup function that creates new user and returns the user id
+ * @param event Event that occurs when recipe save button is clicked
+ * @return {Object} information regarding the user
  */
- async function signUp(event) {
+async function signUp(event) {
   event.preventDefault();
   var email = document.getElementById("email").value;
   var password = document.getElementById("password").value;
+  var confirmPassword = document.getElementById("confirmpassword").value;
   var user_id;
-  createUserWithEmailAndPassword(auth, email, password)
-  .then(async (userCredential) => {
-    console.log('SIGNED UP');
-    const user = userCredential.user;
-    user_id = user.uid;
-    await addUser(email, user.uid);
-    location.href = 'homepage.html';
-    const userInformation = getUser(user.uid);
-    //console.log(userInformation);
-    return userInformation;
-  })
-  .catch((error) => {
-    console.log('INVALID SIGN UP');
-    const errorCode = error.code;
-    const errorMessage = error.message;
-  });
+  if (password === confirmPassword) {
+    createUserWithEmailAndPassword(auth, email, password)
+    .then(async (userCredential) => {
+      console.log('SIGNED UP');
+      const user = userCredential.user;
+      user_id = user.uid;
+      await addUser(email, user.uid);
+      location.href = 'homepage.html';
+      const userInformation = getUser(user.uid);
+      //console.log(userInformation);
+      return userInformation;
+    })
+    .catch((error) => {
+      document.querySelector('#invalidSignUp').innerHTML = 'Invalid Sign Up';
+      console.log('INVALID SIGN UP');
+      const errorCode = error.code;
+      const errorMessage = error.message;
+    });
+  } 
+  else {
+    document.querySelector('#invalidSignUp').innerHTML = 'Passwords Do Not Match';
+    console.log('INVALID SIGN UP');  
+  }
 }
 
 /**
  * Sign in function that returns a user ID
+ * @param event Event that occurs when recipe save button is clicked
+ * @return {Object} information regarding the user
  */
 async function signIn(event) {
   event.preventDefault();
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
   signInWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
-      // Signed in 
-      console.log('SIGNED IN');
-      const user = userCredential.user;
-      location.href = 'homepage.html';
-      // UID specifies which user we are talking about
-      const userInformation = getUser(user.uid);
-      return userInformation;
-    })
-    .catch((error) => {
-      document.querySelector('#invalidLogin').innerHTML = 'Invalid Log In';
-      console.log('WRONG LOG IN INFO');
-      const errorCode = error.code;
-      const errorMessage = error.message;
-    });
+  .then((userCredential) => {
+    // Signed in 
+    console.log('SIGNED IN');
+    const user = userCredential.user;
+    location.href = 'homepage.html';
+    // UID specifies which user we are talking about
+    const userInformation = getUser(user.uid);
+    return userInformation;
+  })
+  .catch((error) => {
+    document.querySelector('#invalidLogin').innerHTML = 'Invalid Log In';
+    console.log('WRONG LOG IN INFO');
+    const errorCode = error.code;
+    const errorMessage = error.message;
+  });
 }
 
 /**
- * addUser function that adds a user to the FireStore Database after creating an account
- * @param {string} email 
- * @param {string} id 
+ * Adds a user to the FireStore Database after creating an account
+ * @param {string} email email of user
+ * @param {string} id id of user
  */
-async function addUser(email, id) {
+ async function addUser(email, id) {
   try {
-    const docRef = await addDoc(collection(db, "users"), {
+    console.log(id + "ID")
+    await setDoc(doc(db, "users", id), {
       user_email: email,
       user_id: id,
       favoriteRecipes: [],
@@ -134,27 +124,78 @@ async function addUser(email, id) {
   }
 }
 
+
+
+// document.querySelector('#descriptionSubmit').addEventListener('click', createRecipe);
+
+/**
+ * Remove recipe from recipe book
+ */
+
+async function removeRecipe() {
+  let id = "D3TKWTnCklTvt5dWDNPlLbUQYa53"
+  const q = query(collection(db, "users"), where("user_id", "==", id));
+  const querySnapshot = await getDocs(q);
+  const document = querySnapshot.docs[0];
+  console.log(document.id)
+  console.log(document)
+  let name = "pizza";
+  let time = "30";
+  let cost = "40";
+  let servings = "3";
+  let description = "testing";
+  const database = doc(db, "users", document.id);
+  // console.log(document.data())
+    await updateDoc(database, {
+      favoriteRecipes: arrayRemove({name: "pizza"})
+    })
+}
+// document.querySelector('#tester').addEventListener('click', removeRecipe)
+
 /**
  * Returns the information of a signed user such as favorite recipes, email, ID
- * @param {String} id 
- * @returns information regarding the user
+ * @param {string} id 
+ * @return {Object} information regarding the user
  */
-async function getUser(id) {
-  console.log(id + "ID");
+async function getUser() {
+  let id = "D3TKWTnCklTvt5dWDNPlLbUQYa53";
+  
   const userInformation = {};
   const users = collection(db, "users");
   const q = await query(users, where("user_id", "==", id));
   const querySnapshot = await getDocs(q);
+  const createdRecipes = [];
   querySnapshot.forEach((doc) => {
     userInformation["results"] = doc.data();
   });
+  for(let i = 0; i&lt;userInformation.results.favoriteRecipes.length; i+=1) {
+    createdRecipes.push( await getRecipe(userInformation.results.favoriteRecipes[i]));
+  }
+  userInformation.results.recipes = createdRecipes
+  console.log(userInformation);
   return userInformation;
 }
 
-//document.querySelector('#add').addEventListener('click', getUser)
+/**
+ * Returns the desired recipe
+ * @param {string} recipe_id ID of recipe to be fetched
+ * @return recipe data
+ */
+
+async function getRecipe(recipe_id) {
+  const recipesRef = doc(db, "recipes", recipe_id);
+  const docSnap = await getDoc(recipesRef);
+  
+  if (docSnap.exists()) {
+    return docSnap.data();
+  } else {
+    // doc.data() will be undefined in this case
+    console.log("No such document!");
+  }
+}
 
 /**
- * Check whether user is signed in
+ * Checks if user is logged in and behaves accordingly
  */
 onAuthStateChanged(auth, (user) => {
   if (user) {
@@ -170,14 +211,18 @@ onAuthStateChanged(auth, (user) => {
               console.log('ERROR SIGNING OUT');
           });
       });
+
+      console.log(uid);
+      if (document.querySelector('.cookbookTemp')) {
+        // Get user using id and get recipes
+      } 
   } else {
-      window.onload = function() {
-          location.href = 'signIn.html';
+      if (document.querySelector('.timeBoxInput') || document.querySelector('.cookbookTemp')||
+          document.querySelector('.mealplanTemp')) {
+        location.href = 'signIn.html';   
       }
   }
 });
-
-
 </code></pre>
         </article>
     </section>
@@ -187,13 +232,17 @@ onAuthStateChanged(auth, (user) => {
 
 </div>
 
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addUser">addUser</a></li><li><a href="global.html#convertTime">convertTime</a></li><li><a href="global.html#convertToBase64">convertToBase64</a></li><li><a href="global.html#createIngredientList">createIngredientList</a></li><li><a href="global.html#createRecipe">createRecipe</a></li><li><a href="global.html#createRecipeCards">createRecipeCards</a></li><li><a href="global.html#deleteRecipe">deleteRecipe</a></li><li><a href="global.html#fetchRecipes">fetchRecipes</a></li><li><a href="global.html#filterCost">filterCost</a></li><li><a href="global.html#getOrganization">getOrganization</a></li><li><a href="global.html#getRecipe">getRecipe</a></li><li><a href="global.html#getRecipes">getRecipes</a></li><li><a href="global.html#getUrl">getUrl</a></li><li><a href="global.html#getUser">getUser</a></li><li><a href="global.html#imagePreview">imagePreview</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#loadRecipes">loadRecipes</a></li><li><a href="global.html#randomRecipe">randomRecipe</a></li><li><a href="global.html#recipeInfo">recipeInfo</a></li><li><a href="global.html#recipePage">recipePage</a></li><li><a href="global.html#redirectPage">redirectPage</a></li><li><a href="global.html#removeRecipe">removeRecipe</a></li><li><a href="global.html#retrieveRecipe">retrieveRecipe</a></li><li><a href="global.html#searchForKey">searchForKey</a></li><li><a href="global.html#signIn">signIn</a></li><li><a href="global.html#signUp">signUp</a></li><li><a href="global.html#storeRecipe">storeRecipe</a></li><li><a href="global.html#updateRecipe">updateRecipe</a></li></ul>
+</nav>
+
 <br class="clear">
 
 <footer>
-    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.4</a> on Thu Nov 18 2021 23:41:55 GMT+0000 (Coordinated Universal Time) using the Minami theme.
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.4</a> on Sat Dec 04 2021 03:28:07 GMT+0000 (Coordinated Universal Time)
 </footer>
 
-<script>prettyPrint();</script>
-<script src="scripts/linenumber.js"></script>
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
 </body>
 </html>
