@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: deleteRecipe.js</title>
+    <title>JSDoc: Source: searchresults.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: deleteRecipe.js</h1>
+    <h1 class="page-title">Source: searchresults.js</h1>
 
     
 
@@ -26,63 +26,77 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>import { initializeApp } from "https://www.gstatic.com/firebasejs/9.3.0/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.3.0/firebase-analytics.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.3.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, query, where, getDocs, getDoc, updateDoc, arrayUnion, doc, arrayRemove, deleteDoc } from "https://www.gstatic.com/firebasejs/9.3.0/firebase-firestore.js";
-import { firebaseConfig } from "./api.js";
+            <pre class="prettyprint source linenums"><code>//document.querySelector('#tester').addEventListener('click', getUser);
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth();
-const db = getFirestore();
+//********************************************************************
+/* main.js STARTS HERE */
+//*********************************************************************
+//Get users' favorite recipes
 
-/**
- * Deletes recipe from database
- * @param {string} recipe_id ID of recipe to be deleted
- */
-async function deleteRecipe(recipe_id, user_id) {  
-    // Deletes document from recipes table
-    await deleteDoc(doc(db, "recipes", recipe_id));
-    const q = query(collection(db, "users"), where("user_id", "==", user_id));
-    const querySnapshot = await getDocs(q);
-    const documents = querySnapshot.docs[0];
-    const database = doc(db, "users", documents.id);
-    await updateDoc(database, {
-        favoriteRecipes: arrayRemove(recipe_id)
-    });
-    location.href = "cookbook.html";
+/*const user = await getUser();
+console.log("GETUSER()");*/
+
+let recipes = JSON.parse(localStorage.recipes);
+let numRecipes;
+const recipeData = {}
+
+init(recipes);
+
+// Call this to begin getting recipe cards
+
+// This is the first function to be called, so when you are tracing your code start here.
+async function init(recipes) {
+    console.log("hi");
+    // Fetch the recipes and wait for them to load
+    let fetchSuccessful = await fetchRecipes(recipes);
+    // If they didn't successfully load, quit the function
+    if (!fetchSuccessful) {
+        console.log("Recipe fetch unsuccessful");
+        return;
+    }
+    // Add the first three recipe cards to the page
+    createRecipeCards();
+    recipePage(recipes);
 }
 
-/**
- * Function adds favorite Recipe to the database based on the current recipe_id and user_id.
- * Function works on recipes that were already saved to the users personal cookbook
- * @param {string} recipe_id id of recipe in database
- * @param {string} user_id id of current user
- */
-async function favoriteRecipe(recipe_id, user_id) {
-const database = doc(db, "users", user_id);
-    try {
-        await updateDoc(database, {
-            favorites: arrayUnion(recipe_id)
+async function fetchRecipes(recipes) {
+    return new Promise((resolve, reject) => {
+        numRecipes = recipes.length;
+        console.log(recipes);
+        //Parse recipes from JSON to recipeData
+        for(let i = 0; i &lt; numRecipes; i++) {
+            recipeData[i] = recipes[i];
+            if (i == numRecipes - 1) {
+                resolve(true);
+            }
+        }
+    });
+}
+  
+function createRecipeCards() {
+    let parentDiv = document.querySelector(".parentDiv");
+    let mainElement = document.querySelector("main");
+    for (let i = 0; i &lt; numRecipes; i++) {
+        let recipeCard = document.createElement("recipe-card");
+        recipeCard.data = recipeData[i.toString()];
+        parentDiv.appendChild(recipeCard);
+    }
+    mainElement.appendChild(parentDiv);
+}
+  
+// Go to recipePage upon clicking recipe card
+function recipePage(recipes) {
+    let recipeCard = document.querySelectorAll("recipe-card");
+    console.log(recipes);
+    
+    for (let i = 0; i &lt; recipeCard.length; i++) {
+        recipeCard[i].addEventListener("click", function () {
+            localStorage.recipe = JSON.stringify(recipes[i]);
+            localStorage.recipeID = JSON.stringify(recipes[i].id);
+            location.href = "recipePageSpoonacular.html";
         })
-    } catch (e) {
-        console.error("Error adding favorite recipe");
     }
 }
-
-const deleteBtn = document.querySelector("#delete");
-const recipe = JSON.parse(localStorage.recipe);
-const user_id = searchForKey(recipe, "user_id");
-const recipe_id = searchForKey(recipe, "recipe_id");
-
-//console.log("TEST");
-//console.log(user_id);
-//console.log(recipe_id);
-
-deleteBtn.addEventListener("click", function() {
-    //console.log("onlick is working");
-    deleteRecipe(recipe_id, user_id);
-})
 
 /**
  * Recursively search for a key nested somewhere inside an object
